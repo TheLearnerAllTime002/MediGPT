@@ -8,4 +8,4 @@ langchain-pinecone==0.2.8
 langchain-community==0.3.26
 google-generativeai>=0.8.0
 markdown
--e .
+
