@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGPT - AI Medical Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>MediGPT</h1>
+                        <p>AI Medical Assistant</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="action-btn" onclick="clearChat()" title="Clear Chat">
+                        <i class="fas fa-broom"></i>
+                    </button>
+                    <button class="action-btn" onclick="toggleTheme()" title="Toggle Theme">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                    <h3>Welcome to MediGPT</h3>
+                    <p>I'm your AI medical assistant. Ask me about symptoms, conditions, treatments, or general health questions.</p>
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="sendQuickMessage('What are the symptoms of diabetes?')">
+                            <i class="fas fa-heartbeat"></i>
+                            Diabetes Symptoms
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('How to prevent heart disease?')">
+                            <i class="fas fa-heart"></i>
+                            Heart Health
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('What causes high blood pressure?')">
+                            <i class="fas fa-tint"></i>
+                            Blood Pressure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <form id="messageForm" class="message-form">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            name="msg" 
+                            placeholder="Ask me about any medical condition or symptom..."
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="disclaimer">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This AI assistant provides general information only. Always consult healthcare professionals for medical advice.
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading-indicator" id="loadingIndicator">
+            <div class="loading-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <span>MediGPT is thinking...</span>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const chatMessages = $('#chatMessages');
+            const messageForm = $('#messageForm');
+            const messageInput = $('#messageInput');
+            const sendButton = $('#sendButton');
+            const loadingIndicator = $('#loadingIndicator');
+
+            function scrollToBottom() {
+                chatMessages.scrollTop(chatMessages[0].scrollHeight);
+            }
+
+            function getCurrentTime() {
+                const now = new Date();
+                return now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+
+            function addMessage(content, isUser = false, isFormatted = false) {
+                const time = getCurrentTime();
+                const messageClass = isUser ? 'user-message' : 'bot-message';
+                const icon = isUser ? 'fas fa-user' : 'fas fa-user-md';
+                
+                const messageHtml = `
+                    <div class="message ${messageClass}">
+                        <div class="message-avatar">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text ${isFormatted ? 'formatted-content' : ''}">${content}</div>
+                            <div class="message-time">${time}</div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.append(messageHtml);
+                scrollToBottom();
+            }
+
+            function showLoading() {
+                loadingIndicator.show();
+                sendButton.prop('disabled', true);
+                messageInput.prop('disabled', true);
+            }
+
+            function hideLoading() {
+                loadingIndicator.hide();
+                sendButton.prop('disabled', false);
+                messageInput.prop('disabled', false);
+                messageInput.focus();
+            }
+
+            messageForm.on('submit', function(e) {
+                e.preventDefault();
+                const message = messageInput.val().trim();
+                
+                if (!message) return;
+
+                // Hide welcome message if it exists
+                $('.welcome-message').fadeOut();
+
+                // Add user message
+                addMessage(message, true);
+                messageInput.val('');
+                showLoading();
+
+                // Send to backend
+                $.ajax({
+                    url: '/get',
+                    method: 'POST',
+                    data: { msg: message },
+                    success: function(response) {
+                        hideLoading();
+                        if (typeof response === 'object' && response.answer) {
+                            addMessage(response.answer, false, true);
+                        } else {
+                            addMessage(response);
+                        }
+                    },
+                    error: function() {
+                        hideLoading();
+                        addMessage('Sorry, I encountered an error. Please try again.');
+                    }
+                });
+            });
+
+            // Focus input on page load
+            messageInput.focus();
+        });
+
+        function sendQuickMessage(message) {
+            $('#messageInput').val(message);
+            $('#messageForm').submit();
+        }
+
+        function clearChat() {
+            if (confirm('Clear all messages?')) {
+                $.post('/clear', function() {
+                    $('#chatMessages').empty().append(`
+                        <div class="welcome-message">
+                            <div class="welcome-icon">
+                                <i class="fas fa-stethoscope"></i>
+                            </div>
+                            <h3>Welcome to MediGPT</h3>
+                            <p>I'm your AI medical assistant. Ask me about symptoms, conditions, treatments, or general health questions.</p>
+                            <div class="quick-actions">
+                                <button class="quick-btn" onclick="sendQuickMessage('What are the symptoms of diabetes?')">
+                                    <i class="fas fa-heartbeat"></i>
+                                    Diabetes Symptoms
+                                </button>
+                                <button class="quick-btn" onclick="sendQuickMessage('How to prevent heart disease?')">
+                                    <i class="fas fa-heart"></i>
+                                    Heart Health
+                                </button>
+                                <button class="quick-btn" onclick="sendQuickMessage('What causes high blood pressure?')">
+                                    <i class="fas fa-tint"></i>
+                                    Blood Pressure
+                                </button>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+        }
+
+        function toggleTheme() {
+            $('body').toggleClass('dark-theme');
+            const icon = $('#themeIcon');
+            if ($('body').hasClass('dark-theme')) {
+                icon.removeClass('fa-moon').addClass('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.removeClass('fa-sun').addClass('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            $('body').addClass('dark-theme');
+            $('#themeIcon').removeClass('fa-moon').addClass('fa-sun');
+        }
+    </script>
+</body>
+</html>
