@@ -6,11 +6,9 @@
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.1.1-green?style=for-the-badge&logo=flask)
 ![LangChain](https://img.shields.io/badge/LangChain-1.0.3-orange?style=for-the-badge)
-![Railway](https://img.shields.io/badge/Deploy-Railway-purple?style=for-the-badge&logo=railway)
-
 *An intelligent medical chatbot powered by RAG architecture and Google's Gemini AI*
 
-[🚀 Live Demo](https://your-app.railway.app) • [📖 Documentation](#features) • [🛠️ Setup](#installation)
+[📖 Documentation](#features) • [🛠️ Setup](#installation)
 
 </div>
 
@@ -87,28 +85,26 @@ graph TD
    http://localhost:8080
    ```
 
-## 🚂 Railway Deployment
+## 🖥️ Local Development
 
-### One-Click Deploy
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/your-template)
+### Running Locally
 
-### Manual Deployment
+1. **Start the application**
+   ```bash
+   python app.py
+   ```
 
-1. **Connect Repository**
-   - Link your GitHub repository to Railway
-   - Railway will auto-detect the Flask app
+2. **Access the application**
+   ```
+   http://localhost:8080
+   ```
 
-2. **Environment Variables**
+3. **Environment Variables**
    ```env
    PINECONE_API_KEY=your_pinecone_api_key
    GOOGLE_API_KEY=your_google_api_key
    SECRET_KEY=your_secret_key
-   PORT=8080
    ```
-
-3. **Deploy**
-   - Railway automatically builds and deploys
-   - Your app will be available at `https://your-app.railway.app`
 
 ## 📁 Project Structure
 
@@ -138,7 +134,7 @@ MediGPT/
 | **Vector DB** | Pinecone |
 | **Embeddings** | Sentence Transformers |
 | **Frontend** | HTML5, CSS3, JavaScript |
-| **Deployment** | Railway |
+| **Server** | Flask Development Server |
 
 ## 🎯 Usage Examples
 
@@ -184,7 +180,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **LangChain** for the RAG framework
 - **Google AI** for Gemini language model
 - **Pinecone** for vector database
-- **Railway** for seamless deployment
+- **Flask** for web framework
 
 ---
 
